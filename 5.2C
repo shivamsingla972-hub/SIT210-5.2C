@@ -1,0 +1,117 @@
+import tkinter as tk
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+
+LIVING = 18
+BATHROOM = 27
+CLOSET = 22
+
+GPIO.setup(LIVING, GPIO.OUT)
+GPIO.setup(BATHROOM, GPIO.OUT)
+GPIO.setup(CLOSET, GPIO.OUT)
+
+living_pwm = GPIO.PWM(LIVING, 1000)
+living_pwm.start(0)
+
+GPIO.output(BATHROOM, GPIO.LOW)
+GPIO.output(CLOSET, GPIO.LOW)
+
+
+def change_light():
+    selected = room.get()
+
+    GPIO.output(BATHROOM, GPIO.LOW)
+    GPIO.output(CLOSET, GPIO.LOW)
+
+    if selected == "Living Room":
+        living_pwm.ChangeDutyCycle(brightness.get())
+    else:
+        living_pwm.ChangeDutyCycle(0)
+
+    if selected == "Bathroom":
+        GPIO.output(BATHROOM, GPIO.HIGH)
+
+    elif selected == "Closet":
+        GPIO.output(CLOSET, GPIO.HIGH)
+
+
+def change_brightness(value):
+    if room.get() == "Living Room":
+        living_pwm.ChangeDutyCycle(float(value))
+
+
+def exit_program():
+    living_pwm.ChangeDutyCycle(0)
+
+    GPIO.output(BATHROOM, GPIO.LOW)
+    GPIO.output(CLOSET, GPIO.LOW)
+
+    living_pwm.stop()
+    GPIO.cleanup()
+
+    window.destroy()
+
+
+window = tk.Tk()
+window.title("Room Light Control")
+window.geometry("350x400")
+
+title = tk.Label(
+    window,
+    text="Select a Room",
+    font=("Arial", 18)
+)
+title.pack(pady=20)
+
+room = tk.StringVar()
+
+tk.Radiobutton(
+    window,
+    text="Living Room",
+    variable=room,
+    value="Living Room",
+    command=change_light
+).pack()
+
+tk.Radiobutton(
+    window,
+    text="Bathroom",
+    variable=room,
+    value="Bathroom",
+    command=change_light
+).pack()
+
+tk.Radiobutton(
+    window,
+    text="Closet",
+    variable=room,
+    value="Closet",
+    command=change_light
+).pack()
+
+brightness = tk.IntVar(value=50)
+
+tk.Label(
+    window,
+    text="Living Room Brightness",
+    font=("Arial", 12)
+).pack(pady=(25, 5))
+
+tk.Scale(
+    window,
+    from_=0,
+    to=100,
+    orient="horizontal",
+    variable=brightness,
+    command=change_brightness,
+    length=250
+).pack()
+
+tk.Button(
+    window,
+    text="Exit",
+    command=exit_program
+).pack(pady=25)
+
+window.mainloop()
